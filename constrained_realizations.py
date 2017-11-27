@@ -56,7 +56,7 @@ def constrained_alm(input_alm, cl_auto_in, cl_auto_out, cl_cross):
     l_list = hp.Alm.getlm(LMAX)[0]
     non_zero = l_list > 1
     l_list_nz = l_list[non_zero]
-    # crabbing the non zero cls and ordering to multiply by the alms
+    # grabbing the non zero cls and ordering to multiply by the alms
     cl_auto_in_nz, cl_auto_out_nz, cl_cross_nz = \
         cl_auto_in[l_list_nz], cl_auto_out[l_list_nz], cl_cross[l_list_nz]
     # defining weights to generate the constrained realizations
@@ -85,7 +85,7 @@ def corr_piece(input_alm, cl_auto_in, cl_cross):
     l_list = hp.Alm.getlm(LMAX)[0]
     non_zero = l_list > 1
     l_list_nz = l_list[non_zero]
-    # crabbing the non zero cls and ordering to multiply by the alms
+    # grabbing the non zero cls and ordering to multiply by the alms
     cl_auto_in_nz, cl_cross_nz = \
         cl_auto_in[l_list_nz], cl_cross[l_list_nz]
     # defining weights to generate the constrained realizations
@@ -95,3 +95,40 @@ def corr_piece(input_alm, cl_auto_in, cl_cross):
     output_alm_real = np.zeros(len(input_alm_real), dtype=complex)
     output_alm_real[non_zero] = W1*input_alm_real[non_zero]
     return real_to_complex(output_alm_real)
+
+def _uncorr_piece(lmax, cl_auto_in, cl_auto_out, cl_cross):
+    """
+    ATTENTION: this version takes twice as long to compute when compare to
+    'uncorr_piece'.
+    Generates a random realization of the uncorrelated piece.
+    ATTENTION:
+     - The way it is currently written, ell_max is given by length of input_alm.
+     - Currently it only works with no monopole or dipole (c0 = c1 = 0 for
+     every cl given)
+    """
+    # getting the l list for non zero cls (no monopole or dipole)
+    l_list = hp.Alm.getlm(lmax)[0]
+    non_zero = l_list > 1
+    l_list_nz = l_list[non_zero]
+    # grabbing the non zero cls and ordering to multiply by the alms
+    cl_auto_in_nz, cl_auto_out_nz, cl_cross_nz = \
+        cl_auto_in[l_list_nz], cl_auto_out[l_list_nz], cl_cross[l_list_nz]
+    # defining weights to generate the constrained realizations
+    W2 = np.sqrt(cl_auto_out_nz - cl_cross_nz**2/cl_auto_in_nz)
+    # calculating the output alm and returning them in complex basis
+    random_complex = np.random.normal(size=len(l_list_nz))\
+        + 1j*np.random.normal(size=len(l_list_nz))
+    output_alm_real = np.zeros(len(l_list), dtype=complex)
+    output_alm_real[non_zero] = W2*random_complex
+    return real_to_complex(output_alm_real)
+
+def uncorr_piece(lmax, cl_auto_in, cl_auto_out, cl_cross):
+    """
+    Generates a random realization of the uncorrelated piece making
+    use of healpy's synalm.
+
+    First two multipoles are set to zero (C_0 and C_1).
+    """
+    cl_uncorr = np.zeros(lmax+1)
+    cl_uncorr[2:] = cl_auto_out[2:lmax+1] - cl_cross[2:lmax+1]**2/cl_auto_in[2:lmax+1]
+    return hp.synalm(cl_uncorr, lmax, verbose=False)
