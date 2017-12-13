@@ -1,11 +1,12 @@
-
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
+import os
 
 
 # importing colormap and registering it
-cmap_rgb = np.loadtxt("./files/Planck_T_Colormap_RGB.dat")
+DATAPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files')
+cmap_rgb = np.loadtxt(os.path.join(DATAPATH, 'Planck_T_Colormap_RGB.dat'))
 ptmap = mcolors.ListedColormap(cmap_rgb, name='PlanckTMap')
 plt.register_cmap(cmap=ptmap)
 
