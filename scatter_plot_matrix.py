@@ -1,5 +1,6 @@
 """Script to create lower-triangula grid with methods to plot statistical plots such as
-confidence curves and 2d histograms.
+confidence curves and 2d histograms. Inspired by Seaborn's PairGrid function 
+[https://seaborn.pydata.org/generated/seaborn.PairGrid.html].
 
 Instructions
 -------
@@ -8,10 +9,8 @@ Instructions
  - If using multiple datasets, add data labels with method add_data_label; plot labels with
  add_data_legend
 
- Pending
- -------
- - Adding method to map any function of two variables to off diagonal
- - Adding method to map any function of one variable to diagonal
+ - If desired, the general functions map_diag and map_offdiag will map any callable plotting 
+ function of one or two dimensions respectively. 
 """
 
 
@@ -27,7 +26,8 @@ class AxesGrid:
     def __init__(self, n_params, labels=None, size=12, hspace=0.08, wspace=0.08, **kwargs):
         """Creates a lower-triangular grid on which cross-correlation-like plots can be drawn
         off diagonal, and histogram-like plots on the diagonal. Matplotlib axes can be accessed with
-        .axes attribute. Labels can be either added in init or later via method add_labels.
+        .axes attribute, and figure with .fig attribute.
+        Labels can be either added in init or later via method add_labels.
 
         Parameters:
         ----------
@@ -49,6 +49,7 @@ class AxesGrid:
             size, size), sharex='col', sharey='row', **kwargs)
         self.nax = n_params
         self.axes = axes
+        self.fig = fig
         # turn off top and right spines for every ax
         for ax in self.axes.flatten():
             ax.spines['right'].set_visible(False)
@@ -98,6 +99,42 @@ class AxesGrid:
 
     # plotting methods
 
+    # general methods
+    def map_diag(self, df, func,  **kwargs):
+        """Map function of one variable to the diagonal.
+
+        Parameters:
+        ----------
+        df : {pandas DataFrame}
+            DataFrame with data to be plotted. Each column is a variable.
+        func : {matplotlib one dimensional plotting function}
+            Function to be called on each df column for each diagonal ax.
+        """
+
+        for i in range(self.nax):
+            diag_ax = self.axes[i, i]._make_twin_axes(
+                sharex=self.axes[i, i], frameon=False)
+            diag_ax.set_axis_off()
+            diag_ax.set_yticks([])
+            plt.sca(diag_ax)
+            func(df.iloc[:, i], **kwargs)
+
+    def map_offdiag(self, df, func, **kwargs):
+        """Map function of two variables to the off diagonal.
+
+        Parameters:
+        ----------
+        df : {pandas DataFrame}
+            DataFrame with data to be plotted. Each column is a variable.
+        func : {matplotlib two dimensional plotting function}
+            Function to be called on pairs of variables for each off diagonal ax.
+        """
+        for i in range(self.nax):
+            for j in range(i):
+                plt.sca(self.axes[i, j])
+                func(df.iloc[:, j], df.iloc[:, i], **kwargs)
+
+    # specialized methods
     def add_hist(self, df,  bins=50, histtype='step', color='k', lw=2, weights=None, **kwargs):
         """Adds histogram to diagonal of grid.
 
@@ -218,6 +255,7 @@ class AxesGrid:
 
         self.label_ax.legend(loc='center')
         [b.remove() for b in self.bars]
+
 
 # internal plotting functions
 
