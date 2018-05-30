@@ -256,6 +256,23 @@ class AxesGrid:
         self.label_ax.legend(loc='center')
         [b.remove() for b in self.bars]
 
+    def add_corr_coef(self, df, weights=None, **kwargs):
+        """Add text label with correlation persons correlation coefficients to each off diagonal ax.
+
+        Parameters
+        ----------
+        df : {pandas DataFrame object}
+            Object with data to be plotted. Each off column being a different variable.
+        weights : {array}, optional
+            Array of weights of length len(df), to be used in case the
+            data is weighted (the default is None)
+        """
+
+        for i in range(self.nax):
+            for j in range(i):
+                _add_corr_coeff(self.axes[i, j], df.iloc[:, j],
+                                df.iloc[:, i], weights=weights, **kwargs)
+
 
 # internal plotting functions
 
@@ -323,3 +340,14 @@ def _hist_stats(ax, arr, label, weights, fontsize=12):
     std = np.round(stats.std, 3)
     ax.set_title('{} = {} $\pm$ {}'.format(label, mean, std),
                  fontsize=fontsize)
+
+
+def _corr_coff(x, y, weights=None):
+    cov = np.cov(x, y, fweights=weights)
+    return cov[0, 1]/np.sqrt(cov[0, 0]*cov[1, 1])
+
+
+def _add_corr_coeff(ax, x, y, weights=None, **kwargs):
+    corrcoef = np.round(_corr_coff(x, y, weights), 2)
+    plt.text(0.95, 0.9, r'$\rho$ = {}'.format(corrcoef), **kwargs, horizontalalignment='right',
+             verticalalignment='center', transform=ax.transAxes)
