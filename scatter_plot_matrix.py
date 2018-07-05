@@ -256,7 +256,7 @@ class AxesGrid:
         self.label_ax.legend(loc='center')
         [b.remove() for b in self.bars]
 
-    def add_corr_coef(self, df, weights=None, **kwargs):
+    def add_corr_coef(self, df, weights=None, label='r', **kwargs):
         """Add text label with correlation persons correlation coefficients to each off diagonal ax.
 
         Parameters
@@ -305,6 +305,8 @@ def _plot_confidence_levels_2d(ax, x, y, targets, bins=50, weights=None,
     smoothing_beam: float
         Standard deviation for Gaussian kernel to be convolved with 2d histogram.
     """
+    if np.all(x==x[0]) or np.all(y==y[0]):
+        return None
     # calculating 2d histogram
     Z, xedges, yedges = np.histogram2d(x, y, bins, weights=weights)
     if smoothing_beam > 0:
@@ -347,7 +349,8 @@ def _corr_coff(x, y, weights=None):
     return cov[0, 1]/np.sqrt(cov[0, 0]*cov[1, 1])
 
 
-def _add_corr_coeff(ax, x, y, weights=None, **kwargs):
+def _add_corr_coeff(ax, x, y, weights=None, label='r', **kwargs):
     corrcoef = np.round(_corr_coff(x, y, weights), 2)
-    plt.text(0.95, 0.9, r'$\rho$ = {}'.format(corrcoef), **kwargs, horizontalalignment='right',
+    txt =  label+' = {}'.format(corrcoef)
+    plt.text(0.95, 0.9, txt, **kwargs, horizontalalignment='right',
              verticalalignment='center', transform=ax.transAxes)
