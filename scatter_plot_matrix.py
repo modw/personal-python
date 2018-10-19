@@ -23,7 +23,7 @@ import scipy.ndimage as ndimage
 
 
 class AxesGrid:
-    def __init__(self, n_params, labels=None, size=12, hspace=0.08, wspace=0.08, **kwargs):
+    def __init__(self, n_params, labels=None, size=12, hspace=0.08, wspace=0.08, legend_loc=[-2, -1], **kwargs):
         """Creates a lower-triangular grid on which cross-correlation-like plots can be drawn
         off diagonal, and histogram-like plots on the diagonal. Matplotlib axes can be accessed with
         .axes attribute, and figure with .fig attribute.
@@ -65,9 +65,12 @@ class AxesGrid:
         plt.subplots_adjust(hspace=hspace, wspace=wspace)
         self._del_upper_triangle()
         # initialize label ax
-        self.label_ax = self.axes[-2, -1]._make_twin_axes(frameon=False)
+        self.label_ax = self.axes[legend_loc[0],
+                                  legend_loc[1]]._make_twin_axes(frameon=False)
         self.label_ax.set_axis_off()
         self.label_ax.set_yticks([])
+        # histogram bars to be deleted after label plot
+        self.labels_bars = []
         return
 
     # grid methods
@@ -204,7 +207,7 @@ class AxesGrid:
                                            cmap=cmap, linewidths=lw, **kwargs)
 
     def add_hist2d(self, df, bins=50, cmap='Greys', weights=None, **kwargs):
-        """Adds hist2d plot to off dioganal of grid.
+        """Adds hist2d plot to off diaganal of grid.
 
         Parameters:
         ----------
@@ -244,17 +247,19 @@ class AxesGrid:
 
         """
 
-        self.bars = self.label_ax.hist([], label=label, histtype=histtype,
-                                       lw=linewidth, linestyle=linestyle,
-                                       color=color)[2]
+        self.labels_bars.append(self.label_ax.hist([], label=label, histtype=histtype,
+                                                   lw=linewidth, linestyle=linestyle,
+                                                   color=color)[2])
 
-    def add_data_legend(self):
+    def add_data_legend(self, **kwargs):
         """Should be used after specifying labels with add_data_label method.
 
         """
-
-        self.label_ax.legend(loc='center')
-        [b.remove() for b in self.bars]
+        # plot legend
+        self.label_ax.legend(loc='center', **kwargs)
+        # delete histogram bars
+        for bars in self.labels_bars:
+            [b.remove() for b in bars]
 
     def add_corr_coef(self, df, weights=None, label='r', **kwargs):
         """Add text label with correlation persons correlation coefficients to each off diagonal ax.
@@ -305,7 +310,7 @@ def _plot_confidence_levels_2d(ax, x, y, targets, bins=50, weights=None,
     smoothing_beam: float
         Standard deviation for Gaussian kernel to be convolved with 2d histogram.
     """
-    if np.all(x==x[0]) or np.all(y==y[0]):
+    if np.all(x == x[0]) or np.all(y == y[0]):
         return None
     # calculating 2d histogram
     Z, xedges, yedges = np.histogram2d(x, y, bins, weights=weights)
@@ -349,8 +354,8 @@ def _corr_coff(x, y, weights=None):
     return cov[0, 1]/np.sqrt(cov[0, 0]*cov[1, 1])
 
 
-def _add_corr_coeff(ax, x, y, weights=None, label='r', **kwargs):
-    corrcoef = np.round(_corr_coff(x, y, weights), 2)
-    txt =  label+' = {}'.format(corrcoef)
+def _add_corr_coeff(ax, x, y, weights=None, label='r', decimal_points=3, **kwargs):
+    corrcoef = np.round(_corr_coff(x, y, weights), decimal_points)
+    txt = label+' = {}'.format(corrcoef)
     plt.text(0.95, 0.9, txt, **kwargs, horizontalalignment='right',
              verticalalignment='center', transform=ax.transAxes)
