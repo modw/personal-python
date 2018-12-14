@@ -276,7 +276,7 @@ class AxesGrid:
         for i in range(self.nax):
             for j in range(i):
                 _add_corr_coeff(self.axes[i, j], df.iloc[:, j],
-                                df.iloc[:, i], weights=weights, **kwargs)
+                                df.iloc[:, i], weights=weights, label=label, **kwargs)
 
 
 # internal plotting functions
@@ -354,8 +354,12 @@ def _corr_coff(x, y, weights=None):
     return cov[0, 1]/np.sqrt(cov[0, 0]*cov[1, 1])
 
 
-def _add_corr_coeff(ax, x, y, weights=None, label='r', decimal_points=3, **kwargs):
+def _add_corr_coeff(ax, x, y, weights=None, label='r', decimal_points=3, xpos=0.95, ypos=0.9, **kwargs):
     corrcoef = np.round(_corr_coff(x, y, weights), decimal_points)
-    txt = label+' = {}'.format(corrcoef)
-    plt.text(0.95, 0.9, txt, **kwargs, horizontalalignment='right',
+
+    if label == False:
+        txt = str(corrcoef)
+    else:
+        txt = label+' = {}'.format(corrcoef)
+    plt.text(xpos, ypos, txt, **kwargs, horizontalalignment='right',
              verticalalignment='center', transform=ax.transAxes)
