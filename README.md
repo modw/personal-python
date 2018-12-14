@@ -14,3 +14,5 @@ A collection of simple modules to facilitate repeated tasks in research projects
 `planck_colormap.py` : Contains function to add colormap used in `Planck`'s temperature map.
 
 `wiener_filter.py` : Contains Class to perform pixel-space wiener filtering of CMB map given noisy data `d` and pixel and noise covariance matrices `S` and `N`. Works with masked skies. Very memory intensive for resolutions above `Nside=32` since the covariance matrix is of size `(12*Nside^2)x(12*Nside^2)`.
+
+`scatter_matrix_plot.py` : Module for publication quality scatter plot matrix with option for scatter, 2d histogram and confidence curves. It calculates and plots confidence curves based on specified confidence intervals. Includes smoothing option. Includes option to add Pearson's correlation coefficient. Allows for multiple data sets in the same grid. Includes plot legend option for multiple data sets. 
