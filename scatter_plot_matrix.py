@@ -8,9 +8,9 @@ Instructions
  - Add desired curves with methods add_hist, add_hist2d and add_confidence curves
  - If using multiple datasets, add data labels with method add_data_label; plot labels with
  add_data_legend
-
  - If desired, the general functions map_diag and map_offdiag will map any callable plotting 
  function of one or two dimensions respectively. 
+ - Add Pearson's correlation coefficient with add_corr_coeff() method.
 """
 
 
