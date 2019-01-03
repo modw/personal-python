@@ -261,8 +261,9 @@ class AxesGrid:
         for bars in self.labels_bars:
             [b.remove() for b in bars]
 
-    def add_corr_coef(self, df, weights=None, label='r', **kwargs):
-        """Add text label with correlation persons correlation coefficients to each off diagonal ax.
+    def add_corr_coef(self, df, weights=None, label='r', decimal_points=3, 
+                        xpos=0.95, ypos=0.9, **kwargs):
+        """Add text label with Pearsons correlation coefficients to each off diagonal ax.
 
         Parameters
         ----------
@@ -271,12 +272,20 @@ class AxesGrid:
         weights : {array}, optional
             Array of weights of length len(df), to be used in case the
             data is weighted (the default is None)
+        label: {string}
+            How to call the correlation coefficient
+        decimal_points: {int}
+            The precision of the correlation coefficient.
+        xpos, ypos: {floats}
+            Position relative to ax to display correlation coefficient.
         """
 
         for i in range(self.nax):
             for j in range(i):
                 _add_corr_coeff(self.axes[i, j], df.iloc[:, j],
-                                df.iloc[:, i], weights=weights, label=label, **kwargs)
+                                df.iloc[:, i], weights=weights, label=label,
+                                decimal_points=decimal_points,
+                                xpos=xpos, ypos=ypos, **kwargs)
 
 
 # internal plotting functions
